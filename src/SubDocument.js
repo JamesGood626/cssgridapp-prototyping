@@ -4,6 +4,11 @@ import "./index.css";
 import { addHtmlElement } from "./actions";
 import styled from "styled-components";
 
+// TODO:
+// Enable toggle of adding/removing grid lines, with the ability to toggle between
+// add/remove rows or columns
+// Enable toggle between off, resize, and click and drag of the user's rendered elements
+
 const Container = styled.div`
   height: 100vh;
   width: 100vw;
@@ -21,24 +26,84 @@ const redHeader = {
 // Receives htmlElements as props from redux store
 class SubDocument extends Component {
   state = {
+    style: null,
     mouseDown: false,
-    recentTargetBoundingBox: null
+    recentTargetBoundingBox: null,
+    addGridLines: true,
+    removeGridLines: false,
+    modifyGridLines: { row: false, column: true }
   };
   componentDidMount = () => {
     const subDocument = this.subDocumentMainContainer.parentNode.parentNode
       .previousSibling.parentNode.parentNode;
     const subDocumentHead = this.subDocumentMainContainer.parentNode.parentNode
       .previousSibling;
-    // I prefer this method
-    this.style = document.createElement("style");
-    // Add a media (and/or media query) here if you'd like!
-    // style.setAttribute("media", "screen")
-    // style.setAttribute("media", "only screen and (max-width : 1024px)")
-    this.style.appendChild(subDocument.createTextNode(""));
+    const style = document.createElement("style");
+    style.appendChild(subDocument.createTextNode(""));
 
     // Add the <style> element to the page
-    subDocumentHead.appendChild(this.style);
-    console.log("THE STYLE.SHEET: ", this.style.sheet);
+    subDocumentHead.appendChild(style);
+
+    // **** NOTE: adding rules at the same index in subsequent rules won't overwrite
+    // previous rules that were inserted at that index, they'll just take that position
+    // and the previous rule will move to the next index. Will need to consider
+    // Whether I want to enable the user to specify the order of the rules they select..
+    // The default for index is -1, which means the end of the collection.
+    // For extra/lazy control, you may add !important to rules to avoid problems with the index.
+    style.sheet.insertRule("header { float: left; opacity: 0.8; }", 0);
+    style.sheet.insertRule("body { float: left; opacity: 0.8; }", 1);
+    // Adding media queries easy breezy
+    style.sheet.insertRule(
+      "@media (min-width:500px) {.block { float: left; opacity: 0.8; }}",
+      1
+    );
+    this.setState({
+      subDocument: subDocument,
+      style: style
+    });
+    console.log("THE STYLE.SHEET: ", style.sheet);
+    // ***** This just returns the body as a string, but really it will suffice for my needs.
+    // console.log(subDocument.body.innerHTML);
+    // This will return the entire document starting from the doctype tag
+    // however there's some encoding issues when you're using fonts in the head
+    // as someone on SO mentioned.
+    // console.log(new XMLSerializer().serializeToString(subDocument));
+  };
+
+  addColumnGridLines = clientX => {
+    const body = this.state.subDocument.body;
+    console.log(clientX);
+    const columnGridLine = document.createElement("div");
+    columnGridLine.classList.add("columnGridLine_1");
+    columnGridLine.style.position = "absolute";
+    columnGridLine.style.top = "0";
+    // won't work with clientX, even in a template string
+    // columnGridLine.style.left = clientX;
+    columnGridLine.style.height = "100vh";
+    columnGridLine.style.width = "1rem";
+    columnGridLine.style.backgroundColor = "lime";
+    body.appendChild(columnGridLine);
+    // Okay, this function can only accept a string absolutely.
+    // gonna need to look into template functions if I want to have it be dynamic.
+    this.state.style.sheet.insertRule(".columnGridLine_1 { opacity: 0.5; }", 0);
+    console.log(columnGridLine);
+    console.log(this.state.subDocument.body.innerHTML);
+  };
+
+  handleOnClick = e => {
+    if (this.state.addGridLines) {
+      if (this.state.modifyGridLines.row) {
+        // add row grid lines
+      } else if (this.state.modifyGridLines.column) {
+        this.addColumnGridLines(e.clientX);
+      }
+    } else if (this.state.removeGridLines) {
+      if (this.state.modifyGridLines.row) {
+        // remove row grid lines
+      } else if (this.state.modifyGridLines.column) {
+        // remove column grid lines
+      }
+    }
   };
 
   handleMouseDown = e => {
@@ -47,15 +112,6 @@ class SubDocument extends Component {
     // console.log("TARGET: ", e.target);
     console.log("Target bounding rect: ", e.target.getBoundingClientRect());
     const targetBoundingBox = e.target.getBoundingClientRect();
-    // e.target.style.position = "absolute";
-    // console.log("MouseMove clientX: ", e.clientX);
-    // console.log("MouseMove clientY: ", e.clientY);
-    // Call this.shouldResizeElement and return:
-    // "resizeWidth", "resizeHeight", or "resizeWidthAndHeight"
-    // to be switched over
-
-    // Use the top, left, right, and bottom values from getBounding Client Rect
-    // and subtract subsequent clientX and clientY values from
     this.setState((prevState, state) => ({
       mouseDown: !prevState.mouseDown,
       recentTargetBoundingBox: targetBoundingBox
@@ -124,8 +180,10 @@ class SubDocument extends Component {
       <div
         style={styledContainer}
         ref={x => (this.subDocumentMainContainer = x)}
+        onClick={this.handleOnClick}
       >
         <div
+          className="block"
           style={styledBlock}
           // className="becomeBlue"
           onMouseDown={this.handleMouseDown}
