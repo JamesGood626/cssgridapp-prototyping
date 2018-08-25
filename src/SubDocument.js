@@ -6,7 +6,9 @@ import styled from "styled-components";
 
 // TODO:
 // Enable toggle of adding/removing grid lines, with the ability to toggle between
-// add/remove rows or columns
+// add/remove rows or columns (add these to a div which has an adjustable z-index for when
+// the user toggles on click and drag or resize, so that they may be underneath what the user is
+// attempting to drag/resize)
 // Enable toggle between off, resize, and click and drag of the user's rendered elements
 
 const Container = styled.div`
@@ -70,33 +72,52 @@ class SubDocument extends Component {
     // console.log(new XMLSerializer().serializeToString(subDocument));
   };
 
-  addColumnGridLines = clientX => {
+  stylePositionPropertyTemplate = (strings, number) => {
+    return `${number}${strings[1]}`;
+  };
+
+  addGridLine = (clientX, clientY) => {
+    const {
+      modifyGridLines: { row, column }
+    } = this.state;
     const body = this.state.subDocument.body;
-    console.log(clientX);
-    const columnGridLine = document.createElement("div");
-    columnGridLine.classList.add("columnGridLine_1");
-    columnGridLine.style.position = "absolute";
-    columnGridLine.style.top = "0";
-    // won't work with clientX, even in a template string
-    // columnGridLine.style.left = clientX;
-    columnGridLine.style.height = "100vh";
-    columnGridLine.style.width = "1rem";
-    columnGridLine.style.backgroundColor = "lime";
-    body.appendChild(columnGridLine);
+    const gridLine = document.createElement("div");
+    gridLine.style.position = "absolute";
+    gridLine.style.backgroundColor = "lime";
+    if (column) {
+      this.addColumnGridLine(gridLine, clientX);
+    } else if (row) {
+      this.addRowGridLine(gridLine, clientY);
+    }
+    body.appendChild(gridLine);
     // Okay, this function can only accept a string absolutely.
     // gonna need to look into template functions if I want to have it be dynamic.
-    this.state.style.sheet.insertRule(".columnGridLine_1 { opacity: 0.5; }", 0);
-    console.log(columnGridLine);
-    console.log(this.state.subDocument.body.innerHTML);
+  };
+
+  addColumnGridLine = (gridLine, clientX) => {
+    gridLine.classList.add("columnGridLine_1");
+    gridLine.style.top = "0";
+    gridLine.style.height = "100vh";
+    gridLine.style.width = "1rem";
+    const styleLeftProperty = this.stylePositionPropertyTemplate`${clientX -
+      8}px`;
+    gridLine.style.left = styleLeftProperty;
+    // this.state.style.sheet.insertRule(".columnGridLine_1 { opacity: 0.5; }", 0);
+  };
+
+  addRowGridLine = (gridLine, clientY) => {
+    gridLine.classList.add("rowGridLine_1");
+    gridLine.style.left = "0";
+    gridLine.style.height = "1rem";
+    gridLine.style.width = "100vw";
+    const styleTopProperty = this.stylePositionPropertyTemplate`${clientY -
+      9}px`;
+    gridLine.style.top = styleTopProperty;
   };
 
   handleOnClick = e => {
     if (this.state.addGridLines) {
-      if (this.state.modifyGridLines.row) {
-        // add row grid lines
-      } else if (this.state.modifyGridLines.column) {
-        this.addColumnGridLines(e.clientX);
-      }
+      this.addGridLine(e.clientX, e.clientY);
     } else if (this.state.removeGridLines) {
       if (this.state.modifyGridLines.row) {
         // remove row grid lines
