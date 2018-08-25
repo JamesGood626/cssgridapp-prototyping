@@ -8,7 +8,14 @@ import styled from "styled-components";
 // Enable toggle of adding/removing grid lines, with the ability to toggle between
 // add/remove rows or columns (add these to a div which has an adjustable z-index for when
 // the user toggles on click and drag or resize, so that they may be underneath what the user is
-// attempting to drag/resize)
+// attempting to drag/resize. Anytime a user clicks and drags an element, that will become an absolutely
+// positioned element. Placing items on the grid specifically must be done from the sidebar.)
+// Row and column detection to prevent overlap. Perhaps setting a minimum distance for how close they may be
+// to each other. Tracking them will need to be done in an array. Keeping track of min/max of
+// the placement of the div via it's clientX/clientY. Some use of binary search to find the nearest
+// sibling lines?
+// Going to need logic that keeps track of how many col/row grid lines are placed and updating that in the
+// target section's/div's class in the stylesheet.
 // Enable toggle between off, resize, and click and drag of the user's rendered elements
 
 const Container = styled.div`
@@ -90,8 +97,6 @@ class SubDocument extends Component {
       this.addRowGridLine(gridLine, clientY);
     }
     body.appendChild(gridLine);
-    // Okay, this function can only accept a string absolutely.
-    // gonna need to look into template functions if I want to have it be dynamic.
   };
 
   addColumnGridLine = (gridLine, clientX) => {
