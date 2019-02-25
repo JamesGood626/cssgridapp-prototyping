@@ -45,6 +45,7 @@ class SubDocument extends Component {
   componentDidMount = () => {
     const subDocument = this.subDocumentMainContainer.parentNode.parentNode
       .previousSibling.parentNode.parentNode;
+    console.log(subDocument.body.clientWidth);
     const subDocumentHead = this.subDocumentMainContainer.parentNode.parentNode
       .previousSibling;
     const style = document.createElement("style");
@@ -100,12 +101,12 @@ class SubDocument extends Component {
   };
 
   addColumnGridLine = (gridLine, clientX) => {
+    console.log(clientX);
     gridLine.classList.add("columnGridLine_1");
     gridLine.style.top = "0";
     gridLine.style.height = "100vh";
-    gridLine.style.width = "1rem";
-    const styleLeftProperty = this.stylePositionPropertyTemplate`${clientX -
-      8}px`;
+    gridLine.style.width = "2px";
+    const styleLeftProperty = this.stylePositionPropertyTemplate`${clientX}px`;
     gridLine.style.left = styleLeftProperty;
     // this.state.style.sheet.insertRule(".columnGridLine_1 { opacity: 0.5; }", 0);
   };
@@ -113,10 +114,9 @@ class SubDocument extends Component {
   addRowGridLine = (gridLine, clientY) => {
     gridLine.classList.add("rowGridLine_1");
     gridLine.style.left = "0";
-    gridLine.style.height = "1rem";
+    gridLine.style.height = "2px";
     gridLine.style.width = "100vw";
-    const styleTopProperty = this.stylePositionPropertyTemplate`${clientY -
-      9}px`;
+    const styleTopProperty = this.stylePositionPropertyTemplate`${clientY}px`;
     gridLine.style.top = styleTopProperty;
   };
 
@@ -206,6 +206,12 @@ class SubDocument extends Component {
       <div
         style={styledContainer}
         ref={x => (this.subDocumentMainContainer = x)}
+        // This will be an event listener that is added to every element that the user adds to the
+        // subDocument. Which will facilitate getting the dimensions of the div for when
+        // they add gridLines, so that calculations may be made and the grid lines readjusted when
+        // screen resizing occurs
+        // But will each html Element also need a resize event listener? I mean to be able to get
+        // access to the grid lines that have been placed.
         onClick={this.handleOnClick}
       >
         <div
